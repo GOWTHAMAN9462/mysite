@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Scraper</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.1/font/bootstrap-icons.css">
+    <style>
+        body{
+            height:100vh;
+        }
+        .form-control:focus, .btn:focus, .form-select:focus {
+          box-shadow: none;
+        }
+
+        .highlight {
+            background-color: #f8f9fd;
+        }
+
+         a:hover{
+            text-decoration: underline;
+         }
+
+
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-lg-6 col-md-8 col-11 m-auto p-0">
+                <div class="m-auto pt-5 mt-5" id="header">
+                    <div class="py-1 ps-3 mb-3 mt-5 border border-dark rounded-pill">
+                        <form autocomplete="off" onsubmit="sub_func();return false;">
+                            <div class="d-flex">
+                                <input type="text" name="input" id="name" placeholder="Search article" class="form-control border-0 w-75 py-2 mx-1">
+                                <select class="form-select border-0 border-start outline-0 border-2 py-2" name="filter" id="filter" style="width:18%;">
+                                    <option selected value="AllField">Filter</option>
+                                    <option value="Title">Title</option>
+                                    <option value="Contrib">Author</option>
+                                    <option value="Keyword">Keyword</option>
+                                </select>
+                                <button class="btn border-0 border-start border-2 text-dark" type="button" onclick="sub_func()" id="search-btn"><i class="bi bi-arrow-right"></i></button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                <div class="" id="body">
+                    <div class="h5" id="body-title"></div>
+                    <div class="" id="body-card"></div>
+                    <div class="text-center" id="body-btn"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        var page = 0;
+        function sub_func()
+        {
+            var filter = document.getElementById("filter").value;
+            var name = document.getElementById("name").value;
+
+            var url = `/search?name=${name}&filter=${filter}&page=${page}`;
+
+            document.getElementById("header").classList.remove("my-5");
+
+            var xhttp = new XMLHttpRequest();
+            xhttp.onreadystatechange = function() {
+                if (this.readyState == 4 && this.status == 200) {
+                    var respVal = this.responseText;
+                    sub_resp(String(respVal),name,filter);
+                }
+            };
+            xhttp.open('GET',url, true);
+            xhttp.send();
+
+            document.getElementById("search-btn").innerHTML = `
+                <div class="spinner-border spinner-border-sm" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>`;
+
+            document.getElementById("search-btn").disabled = true;
+        }
+
+        function sub_resp(resp,name,filter){
+            var data = JSON.parse(resp);
+
+            if(page == 0){
+                document.getElementById("body-card").innerHTML = ``;
+            }
+
+            document.getElementById("search-btn").innerHTML = `<i class="bi bi-arrow-right"></i>`;
+            document.getElementById("search-btn").disabled = false;
+
+            if(data.result)
+            {
+                var details = data.data;
+                document.getElementById("header").classList.remove("mt-5");
+                document.getElementById("header").classList.remove("pt-5");
+
+                document.getElementById("body-title").innerText = `
+                    Search results for ' ${name} ' in ' ${filter} '
+                `;
+
+                for(i in details)
+                {
+                    console.log(details[i].author.length);
+                    var abstract, author;
+
+                    if(details[i].abstract != "")
+                    {
+                        abstract = `
+                            <div class="col-12 row p-2 small text-secondary">
+                                <div class="col-2">Abstract : </div>
+                                <div class="col-10">${details[i].abstract}</div>
+                            </div>
+                        `;
+                    }
+                    else{
+                        abstract = '';
+                    }
+
+                    if(details[i].author.length != 0)
+                    {
+                        author = `
+                            <div class="col-12 row p-2">
+                                <div class="col-2">Authors : </div>
+                                <div class="col-10">${details[i].author}</div>
+                            </div>
+                        `;
+                    }
+                    else{
+                        author = '';
+                    }
+
+
+                    var content = `
+                        <div class="row highlight rounded my-3 m-auto p-2">
+                            <div class="col-12 p-2">
+                                <div><a href="${details[i].link}" target="_blank" class="text-decoration-none text-dark fs-4 fw-bold">${details[i].title}</a></div>
+                            </div>
+                            ${author}
+                            ${abstract}
+                        </div>
+                    `;
+
+                    var card = document.createElement("div");
+                    card.innerHTML = content;
+                    document.getElementById("body-card").appendChild(card);
+
+                }
+
+                if(data.data.length = 15)
+                {
+                    document.getElementById("body-btn").innerHTML = '<button class="btn btn-outline-dark" onclick="load_more()">Load more</button>';
+                }
+            }
+        }
+
+        function load_more(){
+            page ++;
+            sub_func();
+        }
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+</body>
+</html>
