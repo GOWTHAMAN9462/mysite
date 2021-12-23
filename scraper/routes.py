@@ -12,7 +12,7 @@ def home():
 @app.route('/search_affil' , methods=['GET'])
 def search_affil():
     input = request.args.get("name")
-    url = f"https://api.elsevier.com/content/search/affiliation?query=affil(${input})&X-ELS-APIKey=${environ.get('ELSERVIER_API_KEY')}"
+    url = f"https://api.elsevier.com/content/search/affiliation?query=affil(${input})&apiKey=${environ.get('ELSERVIER_API_KEY')}"
     headers = {
                 "X-ELS-APIKey": environ.get('ELSERVIER_API_KEY'),
                 "Accept": 'application/json'
