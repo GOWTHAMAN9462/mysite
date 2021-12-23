@@ -315,6 +315,7 @@
 
             document.getElementById("author-search-btn").classList.remove("d-none");
             document.getElementById("author-search").classList.add("d-none");
+            document.getElementById("author-search").value = "";
             authorlist = [];
             document.getElementById("author-list").innerHTML = `
                 <div class="text-center w-100  my-5 py-5">
@@ -373,27 +374,33 @@
             data = JSON.parse(resp);
             console.log(data);
             var content = "";
-            for(i in data.details["search-results"].entry)
+            if(!("error" in data.details["search-results"].entry[0]))
             {
-                authorlist[authorlist.length] = data.details["search-results"].entry[i]
-            }
-            for(i in authorlist)
-            {
-                content += `
-                    <div class="row point p-1" onclick="author_func('${authorlist[i]["link"][0]["@href"]}')" data-bs-toggle="offcanvas" href="#author-details" role="button" aria-controls="offcanvasExample">
-                        <div class="col-2 text-start">${parseInt(i)+1}</div>
-                        <div class="col-8 text-start">${authorlist[i]["preferred-name"]["surname"]+ " " + authorlist[i]["preferred-name"]["initials"]}</div>
-                        <div class="col-2">${authorlist[i]["document-count"]}</div>
-                    </div>
-                `;
-            }
-            if(data.details["search-results"].entry.length >= 25)
-            {
-                content += `
-                        <div class="w-100 py-1">
-                            <button class="btn btn-outline-dark rounded-pill w-25" onclick="load_more(${id})" id="load-more">More</button>    
+                for(i in data.details["search-results"].entry)
+                {
+                    authorlist[authorlist.length] = data.details["search-results"].entry[i]
+                }
+                for(i in authorlist)
+                {
+                    content += `
+                        <div class="row point p-1" onclick="author_func('${authorlist[i]["link"][0]["@href"]}')" data-bs-toggle="offcanvas" href="#author-details" role="button" aria-controls="offcanvasExample">
+                            <div class="col-2 text-start">${parseInt(i)+1}</div>
+                            <div class="col-8 text-start">${authorlist[i]["preferred-name"]["surname"]+ " " + authorlist[i]["preferred-name"]["initials"]}</div>
+                            <div class="col-2">${authorlist[i]["document-count"]}</div>
                         </div>
                     `;
+                }
+                if(data.details["search-results"].entry.length >= 25)
+                {
+                    content += `
+                            <div class="w-100 py-1">
+                                <button class="btn btn-outline-dark rounded-pill w-25" onclick="load_more(${id})" id="load-more">More</button>    
+                            </div>
+                        `;
+                }
+            }
+            else{
+                content = '<div class="text-center py-2 mx-1"> No results found </div>';
             }
             document.getElementById('author-list').innerHTML = content;
         }
