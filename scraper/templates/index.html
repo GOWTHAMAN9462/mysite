@@ -21,144 +21,431 @@
             text-decoration: underline;
          }
 
+         .rounded-4{
+            border-radius: 4rem;
+         }
+         .row{
+            --bs-gutter-x: 0rem;
+         }
+
+         .rounded-top {
+            border-top-left-radius: 2rem!important;
+            border-top-right-radius: 2rem!important;
+         }
+
+         #input-box:focus{
+             outline: 2px lightblue;
+         }
+
+         #result-box{
+            max-height: 400px;
+         }
+
+         #result-box::-webkit-scrollbar,
+         #alist::-webkit-scrollbar{
+            display: none;
+         }
+         #result-box,#alist{
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+         }
+
+         .rounded-bottom {
+            border-bottom-left-radius: 2rem!important;
+            border-bottom-right-radius: 2rem!important;
+         }
+
+         .point{
+            cursor : pointer;
+         }
+
+         .point:hover{
+            background: #F1F1F1;
+         }
 
     </style>
 </head>
 <body>
-    <div class="container-fluid">
-        <div class="row">
+    <div class="container-fluid p-0">
+        <div class="row ms-0 m-auto" id="main">
             <div class="col-lg-6 col-md-8 col-11 m-auto p-0">
                 <div class="m-auto pt-5 mt-5" id="header">
-                    <div class="py-1 ps-3 mb-3 mt-5 border border-dark rounded-pill">
-                        <form autocomplete="off" onsubmit="sub_func();return false;">
-                            <div class="d-flex">
-                                <input type="text" name="input" id="name" placeholder="Search article" class="form-control border-0 w-75 py-2 mx-1">
-                                <select class="form-select border-0 border-start outline-0 border-2 py-2" name="filter" id="filter" style="width:18%;">
-                                    <option selected value="AllField">Filter</option>
-                                    <option value="Title">Title</option>
-                                    <option value="Contrib">Author</option>
-                                    <option value="Keyword">Keyword</option>
-                                </select>
-                                <button class="btn border-0 border-start border-2 text-dark" type="button" onclick="sub_func()" id="search-btn"><i class="bi bi-arrow-right"></i></button>
-                            </div>
-                        </form>
+                    <div class="py-1 px-4 mt-5 border border-dark border-2 rounded-4 fix-top bg-light" id="input-box">
+                        <input type="text" name="input" id="input" placeholder="Search" autocomplete="off" class="form-control bg-light border-0 py-2 mx-1">
                     </div>
                 </div>
-                <div class="" id="body">
-                    <div class="h5" id="body-title"></div>
-                    <div class="" id="body-card"></div>
-                    <div class="text-center" id="body-btn"></div>
+                <div class="py-1 px-3 mb-3 border border-dark border-2 rounded-bottom d-none overflow-auto bg-light" id="result-box">
                 </div>
             </div>
         </div>
     </div>
     <script>
         var page = 0;
-        function sub_func()
+        var main = document.getElementById('main');
+        var author_box = document.getElementById('author-box');
+        var timer, id;
+        var authorlist = [];
+        
+        document.getElementById('input').addEventListener('keyup', () => {
+            clearTimeout(timer);
+            timer = setTimeout(search_func, 1000);
+        });
+
+        function connector(method, url,response_func)
         {
-            var filter = document.getElementById("filter").value;
-            var name = document.getElementById("name").value;
-
-            var url = `/search?name=${name}&filter=${filter}&page=${page}`;
-
-            document.getElementById("header").classList.remove("my-5");
-
             var xhttp = new XMLHttpRequest();
             xhttp.onreadystatechange = function() {
                 if (this.readyState == 4 && this.status == 200) {
                     var respVal = this.responseText;
-                    sub_resp(String(respVal),name,filter);
+                    window[response_func](String(respVal));
                 }
             };
-            xhttp.open('GET',url, true);
+            xhttp.open(method,url, true);
             xhttp.send();
-
-            document.getElementById("search-btn").innerHTML = `
-                <div class="spinner-border spinner-border-sm" role="status">
-                    <span class="visually-hidden">Loading...</span>
-                </div>`;
-
-            document.getElementById("search-btn").disabled = true;
         }
 
-        function sub_resp(resp,name,filter){
-            var data = JSON.parse(resp);
-
-            if(page == 0){
-                document.getElementById("body-card").innerHTML = ``;
-            }
-
-            document.getElementById("search-btn").innerHTML = `<i class="bi bi-arrow-right"></i>`;
-            document.getElementById("search-btn").disabled = false;
-
-            if(data.result)
-            {
-                var details = data.data;
-                document.getElementById("header").classList.remove("mt-5");
-                document.getElementById("header").classList.remove("pt-5");
-
-                document.getElementById("body-title").innerText = `
-                    Search results for ' ${name} ' in ' ${filter} '
-                `;
-
-                for(i in details)
+        function search_affil(){
+            document.getElementById('input').addEventListener('keyup', () => {
+                if (document.getElementById('input').value == "")
                 {
-                    console.log(details[i].author.length);
-                    var abstract, author;
-
-                    if(details[i].abstract != "")
-                    {
-                        abstract = `
-                            <div class="col-12 row p-2 small text-secondary">
-                                <div class="col-2">Abstract : </div>
-                                <div class="col-10">${details[i].abstract}</div>
+                    document.getElementById('modal-body').innerHTML = `
+                        <div class="m-auto" id="header">
+                            <div class="py-1 px-4 border border-dark border-2 rounded-4 fix-top bg-light" id="input-box">
+                                <input type="text" name="input" id="input" placeholder="Search" autocomplete="off" class="form-control bg-light border-0 py-2 mx-1">
                             </div>
-                        `;
-                    }
-                    else{
-                        abstract = '';
-                    }
-
-                    if(details[i].author.length != 0)
-                    {
-                        author = `
-                            <div class="col-12 row p-2">
-                                <div class="col-2">Authors : </div>
-                                <div class="col-10">${details[i].author}</div>
-                            </div>
-                        `;
-                    }
-                    else{
-                        author = '';
-                    }
-
-
-                    var content = `
-                        <div class="row highlight rounded my-3 m-auto p-2">
-                            <div class="col-12 p-2">
-                                <div><a href="${details[i].link}" target="_blank" class="text-decoration-none text-dark fs-4 fw-bold">${details[i].title}</a></div>
-                            </div>
-                            ${author}
-                            ${abstract}
+                        </div>
+                        <div class="py-1 px-3 mb-3 border border-dark border-2 rounded-bottom d-none overflow-auto bg-light" id="result-box">
                         </div>
                     `;
-
-                    var card = document.createElement("div");
-                    card.innerHTML = content;
-                    document.getElementById("body-card").appendChild(card);
-
                 }
+                clearTimeout(timer);
+                timer = setTimeout(search_func, 800);
+            });
+        }
 
-                if(data.data.length = 15)
+        function search_func(){
+            var result_box = document.getElementById('result-box');
+            var input_box = document.getElementById('input-box');
+            if(document.getElementById('input').value.length > 3)
+            {
+                var input = document.getElementById('input');
+                console.log(input.value);
+                connector('GET',`/search_affil?name=${input.value}`,'search_resp');
+                result_box.innerHTML = `
+                <div class="text-center w-100 p-2">
+                    <div class="spinner-border spinner-border-sm" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+                `;
+                input_box.classList.add("rounded-top");
+                input_box.classList.remove("rounded-4");
+                result_box.classList.remove("d-none");
+            }
+        }
+
+        function search_resp(resp){
+            var result_box = document.getElementById('result-box');
+            var input_box = document.getElementById('input-box');
+            var data = JSON.parse(resp);
+            console.log(data);
+            if (data.result)
+            {
+                data_list = data.details["search-results"].entry;
+                var content = "";
+                if(!("error" in data_list[0]))
                 {
-                    document.getElementById("body-btn").innerHTML = '<button class="btn btn-outline-dark" onclick="load_more()">Load more</button>';
+                    for(i in data_list)
+                    {
+                        content += `
+                            <div onclick="details_func(${i})" class="py-2 px-3 mx-1  row point">
+                                <div class="col-10">${data_list[i]['affiliation-name']}</div>
+                                <div class="col-2">${data_list[i]['document-count']}</div>
+                            </div>
+                        `;
+                    }
+                    result_box.innerHTML = `<div class="mb-3">${content}</div>`;
+                }
+                else{
+                    result_box.innerHTML = '<div class="text-center py-2 mx-1"> No results found </div>';
                 }
             }
         }
 
-        function load_more(){
-            page ++;
-            sub_func();
+        function details_func(resp){
+            try{
+                document.getElementById('btn-close').click();
+            }
+            catch{
+                console.log("button not found");
+            }
+            var input = data_list[resp]["dc:identifier"].split(":");
+            connector('GET',`/get_affil?name=${input[1]}`,'details_resp');
+            main.innerHTML = `
+            <div class="text-center w-100  my-5 py-5">
+                <div class="spinner-border" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+            </div>
+            `;
+        }
+
+        function details_resp(resp){
+            data = JSON.parse(resp);
+            console.log(data);
+            if(data.result)
+            {
+                var details = data.details['affiliation-retrieval-response'];
+                id = details["institution-profile"]["@affiliation-id"];
+                main.innerHTML = `
+                    <div class="row col-12 py-2 bg-secondary bg-gradient bg-secondary px-0" style="height:10vh;">
+                        <div class="col-1 text-center">
+                            <a href="/" class="fs-2 text-light"><i class="bi bi-house-fill"></i></a>
+                        </div>
+                        <div class="offset-9 col-1 text-center">
+                            <button type="button" class="btn fs-3 fw-bold text-light" data-bs-toggle="modal" data-bs-target="#affil-search" onclick="search_affil()">
+                                <i class="bi bi-search"></i>
+                            </button>
+                        </div>
+                        <div class="modal fade" id="affil-search" tabindex="-1" aria-labelledby="exampleModal" aria-hidden="true">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <button type="button" class="btn-close" id="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    <div class="modal-body" id="modal-body" style="max-height:470px;">
+                                        <div class="m-auto" id="header">
+                                            <div class="py-1 px-4 border border-dark border-2 rounded-4 fix-top bg-light" id="input-box">
+                                                <input type="text" name="input" id="input" placeholder="Search" autocomplete="off" class="form-control bg-light border-0 py-2 mx-1">
+                                            </div>
+                                        </div>
+                                        <div class="py-1 px-3 mb-3 border border-dark border-2 rounded-bottom d-none overflow-auto bg-light" id="result-box">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12 text-center m-auto bg-light rounded" style="height:90vh;">
+                        <div class="fs-1 fw-bold w-75 m-auto py-1">
+                            ${details["affiliation-name"]}
+                        </div>
+                        <hr>
+                        <div class="row">
+                            <div class="col-md-7 col-11 row text-secondary fs-5 text-center p-2">
+                                <div class="col-md-3 col-11 my-4 p-2 m-auto shadow rounded">
+                                    <div class =" text-dark fw-bold">ID </div>
+                                    <div>${details["institution-profile"]["@affiliation-id"]}</div>
+                                </div>
+                                <div class="col-md-3 col-11 my-4 p-2 m-auto shadow rounded">
+                                    <div class =" text-dark fw-bold">Documents </div>
+                                    <div>${details.coredata['document-count']}</div>
+                                </div>
+                                <div class="col-md-3 col-11 my-4 p-2 m-auto shadow rounded">
+                                    <div class=" text-dark fw-bold">Authors </div>
+                                    <div>${details.coredata['author-count']}</div>
+                                </div>
+                                <div class="col-11 my-4 p-2 m-auto shadow rounded">
+                                    <div class="text-dark fw-bold align-top">Address</div>
+                                    <div>
+                                        ${details["address"]+ ",<br>" + details["city"]+",<br>"+ details["country"]}
+                                    </div>
+                                </div>
+                                <div class="col-11 my-4 p-2 m-auto shadow rounded">
+                                    <div class ="text-dark fw-bold">Visit at </div>
+                                    <div>
+                                        <a target="_blank" href="${details["institution-profile"]["org-URL"]}">
+                                            ${details["institution-profile"]["org-URL"]}
+                                        </a>
+                                    </div>
+                                </div>
+                                <div class="text-center row">
+                                    <div class="text-center"><a href="${details.coredata.link[2]['@href']}" target="_blank" class="btn btn-warning fw-bold">View on Scopus</a></div>
+                                </div>
+                            </div>
+                            <div class="col-md-5 col-11 border-start text-secondary fs-5 text-center p-2">
+                                <div class="d-flex justify-content-between">
+                                    <div class="h4 fw-bold text-dark m-auto py-1 mx-2" id="auth-title">
+                                        Authors
+                                    </div>
+                                    <div class="text-dark" id="author-search-btn" style="height:38px;">
+                                        <button type="button" class="btn fs-5 fw-bold" onclick="add_auth_search()">
+                                            <i class="bi bi-search"></i>
+                                        </button>
+                                    </div>
+                                    <div class="w-50 d-none" id="author-search">
+                                        <div class="input-group">
+                                            <input type="text" class="form-control" id="author-search-input">
+                                            <div class="input-group-append">
+                                                <button class="btn btn-outline-secondary" type="button" onclick="search_authorlist(${id})">
+                                                    <i class="bi bi-arrow-right"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <hr class="my-2">
+                                <div class="overflow-auto" style="height:450px;" id="alist">
+                                    <div id="author-list">
+                                        <div class="text-center w-100  my-5 py-5">
+                                            <div class="spinner-border" role="status">
+                                                <span class="visually-hidden">Loading...</span>
+                                            </div>
+                                        </div>   
+                                    </div>
+                                    <div class="offcanvas offcanvas-end" tabindex="-1" id="author-details" aria-labelledby="offcanvasRightLabel" style="width:500px;">
+                                        <div class="text-center w-100  my-5 py-5">
+                                            <div class="spinner-border" role="status">
+                                                <span class="visually-hidden">Loading...</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                authorlist = [];
+                authorlist_func(id);
+            }
+        }
+
+        function refresh_auth(resp)
+        {
+
+            document.getElementById("author-search-btn").classList.remove("d-none");
+            document.getElementById("author-search").classList.add("d-none");
+            authorlist = [];
+            document.getElementById("author-list").innerHTML = `
+                <div class="text-center w-100  my-5 py-5">
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>  
+            `;
+            authorlist_func(id);
+        }
+
+        function add_auth_search()
+        {
+            document.getElementById("author-search-btn").classList.add("d-none");
+            document.getElementById("author-search").classList.remove("d-none");
+            document.getElementById("author-search-input").focus();
+            document.getElementById("auth-title").setAttribute("onclick",`refresh_auth(${id})`);
+            document.getElementById("auth-title").classList.add("point");
+        }
+
+        function search_authorlist(resp)
+        {
+            authorlist = [];
+            document.getElementById("author-list").innerHTML = `
+                <div class="text-center w-100  my-5 py-5">
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>  
+            `;
+            console.log(page);
+            var input = document.getElementById("author-search-input").value;
+            connector('GET',`/authorlist?name=AUTHLASTNAME%28${input}%29&page=${page}&id=${id}`,'authorlist_resp');
+        }
+
+        function authorlist_func(resp)
+        {
+            try
+            {
+                document.getElementById("load-more").innerHTML = `
+                <div class="spinner-border spinner-border-sm" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                `;
+            }
+            catch
+            {
+                console.log("button not found");
+            }
+            console.log(page);
+            connector('GET',`/authorlist?name=AF-ID(${resp})&page=${page}&id=${resp}`,'authorlist_resp');
+        }
+
+        function authorlist_resp(resp)
+        {
+            data = JSON.parse(resp);
+            console.log(data);
+            var content = "";
+            for(i in data.details["search-results"].entry)
+            {
+                authorlist[authorlist.length] = data.details["search-results"].entry[i]
+            }
+            for(i in authorlist)
+            {
+                content += `
+                    <div class="row point p-1" onclick="author_func('${authorlist[i]["link"][0]["@href"]}')" data-bs-toggle="offcanvas" href="#author-details" role="button" aria-controls="offcanvasExample">
+                        <div class="col-2 text-start">${parseInt(i)+1}</div>
+                        <div class="col-8 text-start">${authorlist[i]["preferred-name"]["surname"]+ " " + authorlist[i]["preferred-name"]["initials"]}</div>
+                        <div class="col-2">${authorlist[i]["document-count"]}</div>
+                    </div>
+                `;
+            }
+            if(data.details["search-results"].entry.length >= 25)
+            {
+                content += `
+                        <div class="w-100 py-1">
+                            <button class="btn btn-outline-dark rounded-pill w-25" onclick="load_more(${id})" id="load-more">More</button>    
+                        </div>
+                    `;
+            }
+            document.getElementById('author-list').innerHTML = content;
+        }
+
+        function author_func(resp){
+            document.getElementById('author-details').innerHTML =`
+                <div class="text-center w-100  my-5 py-5">
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            `;
+            connector('GET',`/author?url=${resp}`,'author_resp');
+        }
+
+        function author_resp(resp){
+            var data = JSON.parse(resp);
+            var details = data.details['author-retrieval-response'][0];
+            console.log(details);
+            var date = details['author-profile']['date-created'];
+            document.getElementById('author-details').innerHTML = `
+                <div class="offcanvas-header">
+                    <h5 class="offcanvas-title text-center fw-bold fs-4 w-100">DETAILS</h5>
+                    <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+                </div>
+                <div class="offcanvas-body text-start">
+                    <div class='row border-bottom py-2'>
+                        <div class="col-4 fs-4"><i class="bi bi-person-fill"></i> Name</div>
+                        <div class="col-8 text-dark fs-4">${details['author-profile']['preferred-name']['indexed-name']}</div>
+                    </div>
+                    <div class='row border-bottom py-2'>
+                        <div class="col-4 fs-4"><i class="bi bi-stop"></i> ID</div>
+                        <div class="col-8 text-dark fs-4">${details["coredata"]["dc:identifier"].split(":")[1]}</div>
+                    </div>
+                    <div class='row border-bottom py-2'>
+                        <div class="col-4 fs-4"><i class="bi bi-journal-album"></i> Count</div>
+                        <div class="col-8 text-dark fs-4">${details['coredata']['document-count']}</div>
+                    </div>
+                    <div class='row border-bottom py-2'>
+                        <div class="col-4 fs-4"><i class="bi bi-calendar2-check-fill"></i> Joined</div>
+                        <div class="col-8 text-dark fs-4">${date["@day"] + ' / ' + date['@month'] + ' / ' + date['@year']}</div>
+                    </div>
+                    <div class="text-center row py-2">
+                        <div class="text-center"><a href="${details.coredata.link[0]['@href']}" target="_blank" class="btn btn-warning fw-bold">View on Scopus</a></div>
+                    </div>
+                </div>
+            `;
+
+        }
+        function load_more(resp){
+            page = 25;
+            authorlist_func(resp);
         }
     </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
