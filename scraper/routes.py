@@ -18,8 +18,8 @@ def search_affil():
                 "Accept": 'application/json'
             }
     resp = requests.get(url, headers=headers)
-    resp = json.loads(resp.text)
     if resp.status_code == 200:
+        resp = json.loads(resp.text)
         return jsonify({
             "result": True,
             "description": "Details gathered",
@@ -27,6 +27,7 @@ def search_affil():
             "details": resp
         })
     else:
+        resp = json.loads(resp.text)
         return jsonify({
             "result": False,
             "description": "Error",
@@ -44,8 +45,8 @@ def get_affil():
                 "Accept": 'application/json'
                 }
     resp = requests.get(url, headers=headers)
-    resp = json.loads(resp.text)
     if resp.status_code == 200:
+        resp = json.loads(resp.text)
         return jsonify({
             "result": True,
             "description": "Details gathered",
@@ -53,6 +54,7 @@ def get_affil():
             "details": resp
         })
     else:
+        resp = json.loads(resp.text)
         return jsonify({
             "result": False,
             "description": "Error",
