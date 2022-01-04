@@ -6,17 +6,26 @@ from os import environ
 
 @app.route('/')
 def home():
+    url = f"https://api.elsevier.com/authenticate/?platform=SCOPUS"
+    headers = {
+        "X-ELS-APIKey": environ.get('ELSERVIER_API_KEY'),
+        "Accept": 'application/json'
+    }
+    resp = requests.get(url, headers=headers)
+    print(resp.status_code)
+    print(resp.text)
     return render_template('index.html')
 
 
 @app.route('/search_affil' , methods=['GET'])
 def search_affil():
     input = request.args.get("name")
-    url = f"https://api.elsevier.com/content/search/affiliation?query=affil(${input})&apiKey=${environ.get('ELSERVIER_API_KEY')}"
+
+    url = f"https://api.elsevier.com/content/search/affiliation?query=affil({input})"
     headers = {
-                "X-ELS-APIKey": environ.get('ELSERVIER_API_KEY'),
-                "Accept": 'application/json'
-            }
+        "X-ELS-APIKey": environ.get('ELSERVIER_API_KEY'),
+        "Accept": 'application/json'
+    }
     resp = requests.get(url, headers=headers)
     if resp.status_code == 200:
         resp = json.loads(resp.text)
@@ -41,9 +50,9 @@ def get_affil():
     input = request.args.get("name")
     url = f'https://api.elsevier.com/content/affiliation/affiliation_id/{input}'
     headers = {
-                "X-ELS-APIKey": environ.get('ELSERVIER_API_KEY'),
-                "Accept": 'application/json'
-                }
+        "X-ELS-APIKey": environ.get('ELSERVIER_API_KEY'),
+        "Accept": 'application/json'
+    }
     resp = requests.get(url, headers=headers)
     if resp.status_code == 200:
         resp = json.loads(resp.text)
@@ -72,9 +81,9 @@ def authorlist():
     url = f'https://api.elsevier.com/content/search/author?query={input}+AND+AF-ID({id})&count={page}'
     print(url)
     headers = {
-                "X-ELS-APIKey": environ.get('ELSERVIER_API_KEY'),
-                "Accept": 'application/json'
-                }
+        "X-ELS-APIKey": environ.get('ELSERVIER_API_KEY'),
+        "Accept": 'application/json'
+    }
     resp = requests.get(url, headers=headers)
     if resp.status_code == 200:
         resp = json.loads(resp.text)
